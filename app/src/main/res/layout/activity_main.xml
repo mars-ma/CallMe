@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context="dev.mars.callme.MainActivity">
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="开始通话"
+        android:layout_height="wrap_content"
+        android:onClick="startCall"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:text="停止通话"
+        android:layout_height="wrap_content"
+        android:onClick="endCall"
+        />
+    <EditText
+        android:id="@+id/etContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:layout_width="match_parent"
+        android:text="发送测试文本"
+        android:layout_height="wrap_content"
+        android:onClick="sendText"
+        />
+    <TextView
+        android:id="@+id/tvContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
