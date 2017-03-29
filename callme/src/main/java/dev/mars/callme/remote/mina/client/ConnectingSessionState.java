@@ -37,8 +37,8 @@ public class ConnectingSessionState extends ClientSessionState {
      * 请求连接
      */
     @Override
-    public IoFuture connect() {
-        return null;
+    public void connect(final IoFutureListener<ConnectFuture> ioFutureListener) {
+
     }
 
     /**

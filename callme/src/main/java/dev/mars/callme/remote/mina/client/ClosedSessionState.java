@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 
 import dev.mars.callme.bean.SocketMessage;
 import dev.mars.callme.remote.mina.ISendListener;
+import dev.mars.callme.utils.LogUtils;
 
 import static dev.mars.callme.remote.mina.client.ClientSessionStatus.CONNECTED;
 import static dev.mars.callme.remote.mina.client.ClientSessionStatus.CONNECTING;
@@ -36,10 +37,11 @@ public class ClosedSessionState extends ClientSessionState {
      * 请求连接
      */
     @Override
-    public ConnectFuture connect() {
+    public void connect(final IoFutureListener<ConnectFuture> ioFutureListener) {
+        LogUtils.DT("TCP 客户端向 "+minaSocketClient.getIP()+" : "+minaSocketClient.getPort()+" 发起请求");
         minaSocketClient.setSessionState(minaSocketClient.sessionStateFactory.newState(CONNECTING));
-        minaSocketClient.connectFuture =(minaSocketClient.connector.connect(new InetSocketAddress(minaSocketClient.getIP(), minaSocketClient.getPort())));
-        minaSocketClient.connectFuture.addListener(new IoFutureListener<ConnectFuture>() {
+        minaSocketClient.setConnectFuture((minaSocketClient.connector.connect(new InetSocketAddress(minaSocketClient.getIP(), minaSocketClient.getPort()))));
+        minaSocketClient.getConnectFuture().addListener(new IoFutureListener<ConnectFuture>() {
             @Override
             public void operationComplete(ConnectFuture ioFuture) {
                 if (!ioFuture.isConnected() || ioFuture.isCanceled()) {
@@ -51,7 +53,7 @@ public class ClosedSessionState extends ClientSessionState {
                 }
             }
         });
-        return minaSocketClient.getConnectFuture();
+        minaSocketClient.getConnectFuture().addListener(ioFutureListener);
     }
 
     /**
@@ -64,8 +66,7 @@ public class ClosedSessionState extends ClientSessionState {
     @Override
     public void send(final SocketMessage msg, final ISendListener listener, final boolean tryConnect) {
         if (tryConnect) {
-            ConnectFuture future = connect();
-            future.addListener(new IoFutureListener<ConnectFuture>() {
+            connect(new IoFutureListener<ConnectFuture>() {
                 @Override
                 public void operationComplete(ConnectFuture ioFuture) {
                     if (minaSocketClient.getStatus() == CONNECTED){

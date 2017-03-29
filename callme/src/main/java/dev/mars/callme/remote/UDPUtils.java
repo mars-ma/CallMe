@@ -50,48 +50,7 @@ public class UDPUtils {
         this.onReceiveListener = onReceiveListener;
     }
 
-    public void send(final String destIP,final String command) {
-        service.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (sendSocket == null) {
-                    try {
-                        sendSocket = new DatagramSocket();
-                        sendSocket.setBroadcast(true);
-                    } catch (SocketException e) {
-                        e.printStackTrace();
-                        return;
-                    }
-                }
-                DatagramPacket dp;
-                try {
-                    byte[] strBytes = command.getBytes("UTF-8");
-                    int length = strBytes.length;
-                    byte[] buf = new byte[length + 4];
-                    buf[0] = (byte) (length >> 24);
-                    buf[1] = (byte) (length >> 16);
-                    buf[2] = (byte) (length >> 8);
-                    buf[3] = (byte) (length);
-                    for (int i = 4; i < length + 4; i++) {
-                        buf[i] = strBytes[i - 4];
-                    }
-                    dp = new DatagramPacket(buf, buf.length,
-                            InetAddress.getByName(destIP), port);
-                    LogUtils.D("UDP SEND:" + command);
-                    sendSocket.send(dp);
-                } catch (UnknownHostException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        });
-
-    }
-
-    public void send(final UDPMessage msg) {
+    public void send(final String destIP,final UDPMessage msg) {
         service.execute(new Runnable() {
             @Override
             public void run() {
@@ -118,7 +77,7 @@ public class UDPUtils {
                         buf[i] = strBytes[i - 4];
                     }
                     dp = new DatagramPacket(buf, buf.length,
-                            InetAddress.getByName("255.255.255.255"), port);
+                            InetAddress.getByName(destIP), port);
                     LogUtils.D("UDP SEND:" + str+" PORT:"+port);
                     sendSocket.send(dp);
                 } catch (UnknownHostException e) {
@@ -133,7 +92,12 @@ public class UDPUtils {
 
     }
 
-    public void stopListen() {
+    public void send(final UDPMessage msg) {
+        send("255.255.255.255",msg);
+
+    }
+
+    public void stopListening() {
         listen.set(false);
         listenSocket.close();
         listenSocket = null;
@@ -152,6 +116,7 @@ public class UDPUtils {
         }
 
         listen.set(true);
+        LogUtils.DT("UDP listen PORT:"+port);
         service.execute(new Runnable() {
             @Override
             public void run() {
@@ -160,7 +125,6 @@ public class UDPUtils {
                     DatagramPacket dp = new DatagramPacket(buf, buf.length);// 创建接收数据报的实例
                     try {
                         lock_listen.acquire();
-                        LogUtils.DT("UDP listen PORT:"+port);
                         listenSocket.receive(dp);// 阻塞,直到收到数据报后将数据装入IP中
                         int b0 = buf[0];
                         b0 = b0 << 24;

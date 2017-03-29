@@ -1,5 +1,6 @@
 package dev.mars.callme.remote.mina.client;
 
+import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.IoFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.future.WriteFuture;
@@ -22,15 +23,15 @@ public class ConnectedSessionState extends ClientSessionState {
      */
     @Override
     public IoFuture closeConnection() {
-        return minaSocketClient. session.closeOnFlush();
+        minaSocketClient.setSessionState(minaSocketClient.sessionStateFactory.newState(ClientSessionStatus.ClOSED));
+        return minaSocketClient.getSession().closeOnFlush();
     }
 
     /**
      * 请求连接
      */
     @Override
-    public IoFuture connect() {
-        return null;
+    public void connect(final IoFutureListener<ConnectFuture> ioFutureListener) {
     }
 
     /**

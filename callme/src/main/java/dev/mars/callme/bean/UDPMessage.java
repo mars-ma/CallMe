@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 
 
 public class UDPMessage implements Serializable{
+	public static final int COMMAND_FIND_OTHER =1;
+	public static final int COMMAND_START_TCP_CONNECTION =2;
 	int command;
 	String data;
 	public void setMessage(int c,String s){

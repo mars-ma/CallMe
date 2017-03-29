@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 
 import dev.mars.callme.bean.SocketMessage;
 import dev.mars.callme.utils.BasicTypeConvertUtils;
+import dev.mars.callme.utils.LogUtils;
 
 
 public class BaseDecoder extends CumulativeProtocolDecoder {
@@ -22,6 +23,7 @@ public class BaseDecoder extends CumulativeProtocolDecoder {
     protected boolean doDecode(IoSession session, IoBuffer in,
                                ProtocolDecoderOutput out) throws Exception {
         // TODO Auto-generated method stub
+        LogUtils.DT("1.缓冲区目前数组长度:"+in.remaining());
         if (in.remaining() >= 4) {
 //			System.out.println("1.缓冲区目前数组长度:"+in.remaining());
             //当可读的缓冲区长度大于4时（前两个字节是占位符，后两个字节是长度）
@@ -32,18 +34,19 @@ public class BaseDecoder extends CumulativeProtocolDecoder {
             if (header[0] == SocketMessage.HEADER1 && header[1] == SocketMessage.HEADER2) {
 //				System.out.println("header[2]:"+header[2]+",header[3]:"+header[3]);
                 short bodyLength = BasicTypeConvertUtils.byteToShort(header[2], header[3]);
-//				System.out.println("报文内容长度:"+bodyLength);
-//				System.out.println("2.缓冲区目前数组长度:"+in.remaining());
+				LogUtils.DT("Decode 报文内容长度:"+bodyLength);
+				LogUtils.DT("2.缓冲区目前数组长度:"+in.remaining());
 
                 if (in.remaining() >= bodyLength) {
                     //可读取完整的报文
 //					System.out.println(in.remaining()>=bodyLength);
                     SocketMessage msg = new SocketMessage();
                     byte command = in.get();
+                    LogUtils.DT("Decode command = "+command);
                     msg.setCommand(command);
-                    if(command!=-1) { //如果不是心跳包
+                    if(command!=SocketMessage.COMMAND_SEND_HEART_BEAT) { //如果不是心跳包
                         byte[] data = new byte[bodyLength - 1];
-                        in.get(data, 0, bodyLength);
+                        in.get(data, 0, data.length);
                         msg.setData(data);
                         out.write(msg);
                     }

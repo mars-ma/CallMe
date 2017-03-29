@@ -2,6 +2,7 @@ package dev.mars.callme.remote.mina.client;
 
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.IoFuture;
+import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.service.IoHandler;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
@@ -9,12 +10,15 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import dev.mars.callme.bean.SocketMessage;
 import dev.mars.callme.common.Constants;
 import dev.mars.callme.remote.mina.BaseCodecFactory;
 import dev.mars.callme.remote.mina.ISendListener;
 import dev.mars.callme.remote.mina.KeepAliveFilter;
+import dev.mars.callme.utils.LogUtils;
 
 
 /**
@@ -31,6 +35,7 @@ public class MinaSocketClient {
 	protected int destPort;
 
 	MinaSessionStateFactory sessionStateFactory = new MinaSessionStateFactory();
+	ExecutorService service = Executors.newCachedThreadPool();
 
 	public MinaSocketClient() {
 		super();
@@ -73,7 +78,7 @@ public class MinaSocketClient {
 		connector.getFilterChain().addLast(
 				"BaseFilter",
 				new ProtocolCodecFilter(new BaseCodecFactory()));
-		connector.getFilterChain().addLast("KeepAlive", new KeepAliveFilter());
+		//connector.getFilterChain().addLast("KeepAlive", new KeepAliveFilter());
 		// 设置连接超时检查时间
 		connector.setConnectTimeoutCheckInterval(5000);
 		connector.setConnectTimeoutMillis(10000); // 10秒后超时
@@ -121,14 +126,14 @@ public class MinaSocketClient {
 	/**
 	 * 连接
 	 */
-	public IoFuture connect() {
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					getSessionState().connect();
-				}
-			}).start();
-		return null;
+	public void connect(final IoFutureListener<ConnectFuture> ioFutureListener) {
+		service.execute(new Runnable() {
+			@Override
+			public void run() {
+				LogUtils.DT("connect getSessionState:"+getSessionState());
+				getSessionState().connect(ioFutureListener);
+			}
+		});
 	}
 
 	/**
@@ -138,18 +143,18 @@ public class MinaSocketClient {
 	 */
 	public void send(final SocketMessage msg, final ISendListener listener,
 					 final boolean tryConnect) {
-		new Thread(new Runnable() {
+		service.execute(new Runnable() {
 			@Override
 			public void run() {
 				getSessionState().send(msg, listener, tryConnect);
 			}
-		}).start();
+		});
 	}
 
 	/**
 	 * 关闭连接
 	 */
-	public IoFuture closeConnection() {
+	public IoFuture closeSession() {
 		return getSessionState().closeConnection();
 	}
 

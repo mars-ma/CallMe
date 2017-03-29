@@ -5,7 +5,9 @@ import android.os.Process;
 import org.apache.mina.core.future.IoFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.future.WriteFuture;
+import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.core.service.IoHandler;
+import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
@@ -32,57 +34,12 @@ import dev.mars.callme.utils.LogUtils;
 
 public class MinaSocketServer {
     private ExecutorService service = Executors.newCachedThreadPool();
-    private SocketAcceptor acceptor;
+    IoAcceptor acceptor;
     //监听端口
     private int PORT;
     //与客户端的唯一会话
     private IoSession tcpSession;
-    private IoHandler mIoHandler = new IoHandler() {
-        @Override
-        public void sessionCreated(IoSession ioSession) throws Exception {
 
-        }
-
-        @Override
-        public void sessionOpened(IoSession ioSession) throws Exception {
-            tcpSession = ioSession;
-            unbind();
-            LogUtils.DT("已建立TCP Session");
-        }
-
-        @Override
-        public void sessionClosed(IoSession ioSession) throws Exception {
-            tcpSession = null;
-            LogUtils.DT("TCP Session 关闭");
-        }
-
-        @Override
-        public void sessionIdle(IoSession ioSession, IdleStatus idleStatus) throws Exception {
-
-        }
-
-        @Override
-        public void exceptionCaught(IoSession ioSession, Throwable throwable) throws Exception {
-            if (tcpSession != null) {
-                tcpSession.closeOnFlush();
-            }
-        }
-
-        @Override
-        public void messageReceived(IoSession ioSession, Object o) throws Exception {
-
-        }
-
-        @Override
-        public void messageSent(IoSession ioSession, Object o) throws Exception {
-
-        }
-
-        @Override
-        public void inputClosed(IoSession ioSession) throws Exception {
-
-        }
-    };
 
     public MinaSocketServer() {
         super();
@@ -101,8 +58,48 @@ public class MinaSocketServer {
         acceptor.getFilterChain().addLast(
                 "BaseFilter",
                 new ProtocolCodecFilter(new BaseCodecFactory()));
-        acceptor.getFilterChain().addLast("KeepAlive", new KeepAliveFilter());
-        acceptor.setHandler(mIoHandler);
+        //acceptor.getFilterChain().addLast("KeepAlive", new KeepAliveFilter());
+        acceptor.getSessionConfig().setReadBufferSize(2048);
+        acceptor.setHandler(new IoHandlerAdapter(){
+            @Override
+            public void sessionOpened(IoSession session) throws Exception {
+                super.sessionOpened(session);
+                LogUtils.DT("已建立TCP Session");
+                if(tcpSession!=null&&tcpSession.isConnected()){
+                    return;
+                }
+                tcpSession = session;
+                if(ioHandler!=null)
+                    ioHandler.sessionOpened(session);
+            }
+
+            @Override
+            public void sessionClosed(IoSession session) throws Exception {
+                super.sessionClosed(session);
+
+                tcpSession = null;
+                LogUtils.DT("TCP Session 关闭");
+                if(ioHandler!=null)
+                    ioHandler.sessionClosed(session);
+                unbind();
+            }
+
+            @Override
+            public void messageReceived(IoSession session, Object message) throws Exception {
+                super.messageReceived(session, message);
+                if(ioHandler!=null)
+                    ioHandler.messageReceived(session,message);
+            }
+
+            @Override
+            public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+                super.exceptionCaught(session, cause);
+                LogUtils.DT("TCP 服务端异常:"+cause.getMessage());
+                if (tcpSession != null) {
+                    tcpSession.closeOnFlush();
+                }
+            }
+        });
     }
 
     public int getPort() {
@@ -118,7 +115,7 @@ public class MinaSocketServer {
         PORT = port;
     }
 
-    public void bind() {
+    public void bind(final OnBindListener listener) {
         if (acceptor.isActive()) {
             return;
         }
@@ -128,12 +125,23 @@ public class MinaSocketServer {
                 try {
                     acceptor.bind(new InetSocketAddress(getPort()));
                     LogUtils.DT("TCP Server 正在监听 PORT:" + PORT);
+                    if(listener!=null){
+                        listener.onBindSucess();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                     LogUtils.E(e.getMessage());
+                    if(listener!=null){
+                        listener.onBindFailed();
+                    }
                 }
             }
         });
+    }
+
+    public interface OnBindListener{
+        void onBindSucess();
+        void onBindFailed();
     }
 
     public void unbind() {
@@ -172,6 +180,11 @@ public class MinaSocketServer {
             tcpSession.closeOnFlush();
             tcpSession = null;
         }
+    }
+
+    private IoHandler ioHandler;
+    public void setIoHandler(IoHandler handler){
+        ioHandler = handler;
     }
 
 }

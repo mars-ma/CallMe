@@ -13,11 +13,11 @@ import java.io.Serializable;
  */
 public class SocketMessage implements Serializable{
 
-
-
+	public static final byte COMMAND_SEND_TEXT= 1;
+	public static final byte COMMAND_SEND_HEART_BEAT= 0;
 	public static final byte HEADER1 = 0x5c;
 	public static final byte HEADER2 = 0x74;
-	private byte command; // -1：心跳包  0:发送文字 1:发送IP
+	private byte command; // 0：心跳包  1:发送文字
 	private byte[] data;
 
 

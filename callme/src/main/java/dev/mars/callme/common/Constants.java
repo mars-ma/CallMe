@@ -8,7 +8,7 @@ import android.os.Environment;
 
 public class Constants {
     //默认TCP通信端口
-    public static final int TCP_PORT = 5555;
+    public static final int TCP_PORT = 5999;
     //默认UDP通信端口
     public static final int UDP_PORT = 5556;
 
