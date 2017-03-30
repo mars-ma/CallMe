@@ -8,6 +8,7 @@ import dev.mars.callme.bean.SocketMessage;
 import dev.mars.callme.remote.mina.ISendListener;
 
 import static dev.mars.callme.remote.mina.client.ClientSessionStatus.CONNECTED;
+import static dev.mars.callme.remote.mina.client.ClientSessionStatus.ClOSED;
 
 
 /**
@@ -28,8 +29,8 @@ public class ConnectingSessionState extends ClientSessionState {
     public IoFuture closeConnection() {
         if (minaSocketClient.connectFuture != null && !minaSocketClient.connectFuture.isDone() && !minaSocketClient.connectFuture.isCanceled()) {
             minaSocketClient.connectFuture.cancel();
-//                setSessionState(new MinaSessionStateFactory().newState(SocketState.ClOSED));
         }
+        minaSocketClient.setSessionState(ClOSED);
         return minaSocketClient.connectFuture;
     }
 

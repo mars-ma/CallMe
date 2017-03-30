@@ -45,9 +45,13 @@ public class BaseDecoder extends CumulativeProtocolDecoder {
                     LogUtils.DT("Decode command = "+command);
                     msg.setCommand(command);
                     if(command!=SocketMessage.COMMAND_SEND_HEART_BEAT) { //如果不是心跳包
-                        byte[] data = new byte[bodyLength - 1];
-                        in.get(data, 0, data.length);
-                        msg.setData(data);
+                        if(command==SocketMessage.COMMAND_REQUEST_CALL){
+                            LogUtils.DT("接到通话请求");
+                        }else{
+                            byte[] data = new byte[bodyLength - 1];
+                            in.get(data, 0, data.length);
+                            msg.setData(data);
+                        }
                         out.write(msg);
                     }
 //						System.out.println("3.缓冲区目前数组长度:" + in.remaining())

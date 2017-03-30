@@ -97,6 +97,10 @@ public class MinaSocketClient {
 		return session;
 	}
 
+	public void setSessionState(ClientSessionStatus status) {
+		setSessionState(sessionStateFactory.newState(status));
+	}
+
 	public void setSessionState(ClientSessionState s) {
 		sessionState = s;
 	}

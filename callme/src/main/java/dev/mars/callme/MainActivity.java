@@ -7,6 +7,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telecom.Call;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -16,6 +17,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import dev.mars.callme.common.Constants;
+import dev.mars.callme.event.CallingEvent;
+import dev.mars.callme.event.OnCallEvent;
 import dev.mars.callme.service.CommunicateService;
 
 import static android.Manifest.permission.CHANGE_WIFI_MULTICAST_STATE;
@@ -76,15 +79,13 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         CommunicateService.startListen(MainActivity.this, Constants.UDP_PORT,Constants.TCP_PORT);
     }
-
+    
 
     public void startCall(View view) {
-        if(CommunicateService.STATE==0)
         CommunicateService.startCall(getContext());
     }
 
     public void endCall(View view) {
-        if(CommunicateService.STATE!=0)
         CommunicateService.endCall(getContext());
     }
 
@@ -94,5 +95,15 @@ public class MainActivity extends AppCompatActivity {
 
     public Context getContext(){
         return MainActivity.this;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(CallingEvent event){
+        CallingActivity.calling(getContext(),event.ip);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(OnCallEvent event){
+        OnCallActivity.onCall(getContext(),event.ip);
     }
 }

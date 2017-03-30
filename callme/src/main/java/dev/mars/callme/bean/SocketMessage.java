@@ -15,6 +15,10 @@ public class SocketMessage implements Serializable{
 
 	public static final byte COMMAND_SEND_TEXT= 1;
 	public static final byte COMMAND_SEND_HEART_BEAT= 0;
+	public static final byte COMMAND_REQUEST_CALL= 2;
+	public static final byte COMMAND_REPONSE_CALL_OK= 3; //同意通话
+	public static final byte COMMAND_REPONSE_CALL_REFUSE= 4; //拒绝通话
+
 	public static final byte HEADER1 = 0x5c;
 	public static final byte HEADER2 = 0x74;
 	private byte command; // 0：心跳包  1:发送文字

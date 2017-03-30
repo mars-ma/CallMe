@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/activity_calling"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -9,32 +9,20 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
-    tools:context="dev.mars.callme.MainActivity">
+    tools:context="dev.mars.callme.CallingActivity">
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
         android:layout_width="match_parent"
-        android:text="发送广播"
-        android:layout_height="wrap_content"
-        android:onClick="startCall"
-        />
-    <Button
-        android:layout_width="match_parent"
-        android:text="终止连接"
-        android:layout_height="wrap_content"
-        android:onClick="endCall"
-        />
-    <EditText
-        android:id="@+id/etContent"
-        android:layout_width="match_parent"
+        android:text="接听"
+        android:onClick="answerCall"
         android:layout_height="wrap_content" />
     <Button
         android:layout_width="match_parent"
-        android:text="发送测试文本"
-        android:layout_height="wrap_content"
-        android:onClick="sendText"
-        />
-    <TextView
-        android:id="@+id/tvContent"
-        android:layout_width="match_parent"
+        android:text="挂断"
+        android:onClick="stopCalling"
         android:layout_height="wrap_content" />
 </LinearLayout>

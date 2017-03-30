@@ -30,7 +30,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile files('libs/mina-core-2.0.16.jar')
     compile files('libs/slf4j-api-1.7.21.jar')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -39,4 +39,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'org.greenrobot:eventbus:3.0.0'
     testCompile 'junit:junit:4.12'
+    compile project(':opensl')
 }

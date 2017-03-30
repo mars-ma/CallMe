@@ -23,7 +23,7 @@ public class ConnectedSessionState extends ClientSessionState {
      */
     @Override
     public IoFuture closeConnection() {
-        minaSocketClient.setSessionState(minaSocketClient.sessionStateFactory.newState(ClientSessionStatus.ClOSED));
+        minaSocketClient.setSessionState(ClientSessionStatus.ClOSED);
         return minaSocketClient.getSession().closeOnFlush();
     }
 
