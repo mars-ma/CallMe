@@ -1,6 +1,10 @@
 package dev.mars.callme.base;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
@@ -16,5 +20,15 @@ public class BaseActivity extends AppCompatActivity {
 
     public void showToast(String str){
         Toast.makeText(getActivity(),str,Toast.LENGTH_SHORT).show();
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean hasPermissions(String[] pers){
+        for(String p:pers){
+            if(checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED){
+                return false;
+            }
+        }
+        return true;
     }
 }

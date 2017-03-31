@@ -51,4 +51,21 @@ public class NativeLib {
     public native int recordAndPlayPCM(boolean enableProcess,boolean enableEchoCancel);
 
     public native int stopRecordingAndPlaying() ;
+
+    public native void startRecording2(int sampleRate, int period, int channels);
+
+    public void onRecord(byte[] bytes){
+        LogUtils.DEBUG("收到native传来的bytes，长度 = "+(bytes==null?0:bytes.length));
+        if(onRecordListener!=null){
+            onRecordListener.onRecord(bytes);
+        }
+    }
+    OnRecordListener onRecordListener;
+    public void setOnRecordListener(OnRecordListener l){
+        onRecordListener = l;
+    }
+
+    public interface OnRecordListener{
+        void onRecord(byte[] datas);
+    }
 }

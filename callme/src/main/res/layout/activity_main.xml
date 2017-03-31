@@ -23,6 +23,19 @@
         android:layout_height="wrap_content"
         android:onClick="endCall"
         />
+    <Button
+        android:layout_width="match_parent"
+        android:text="测试录放"
+        android:layout_height="wrap_content"
+        android:onClick="recordAndPlay"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="停止录放"
+        android:layout_height="wrap_content"
+        android:onClick="stopPlay"
+        />
     <EditText
         android:id="@+id/etContent"
         android:layout_width="match_parent"

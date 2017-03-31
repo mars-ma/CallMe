@@ -108,7 +108,7 @@ Java_dev_mars_openslesdemo_NativeLib_recordAndPlayPCM(JNIEnv *env, jobject insta
                                                                     "(Z)V");
 
 
-    //参数依次为采样率、频道数量、录入频道数量、播放频道数量，每帧的大学，模式
+    //参数依次为采样率、频道数量、录入频道数量、播放频道数量，每帧的长度，模式
     OPENSL_STREAM *stream_record = android_OpenAudioDevice(sampleRate, 1, 1,
                                                            SPEEX_FRAME_SIZE, RECORD_MODE);
     OPENSL_STREAM *stream_play = android_OpenAudioDevice(sampleRate, 1, 1, SPEEX_FRAME_SIZE,
@@ -342,6 +342,62 @@ Java_dev_mars_openslesdemo_NativeLib_decode(JNIEnv *env, jobject instance, jstri
 }
 
 JNIEXPORT void JNICALL
+Java_dev_mars_openslesdemo_NativeLib_startRecording2(JNIEnv *env, jobject instance, jint sampleRate,
+                                                     jint period, jint channels) {
+    time_t t1, t2;
+    time(&t1);
+    double total_time = 0;
+
+    jclass native_bridge_class = env->GetObjectClass(instance);
+    //此方法用于设置录音状况的同步标记
+    jmethodID method_id_setIsRecording = env->GetMethodID(native_bridge_class, "setIsRecording",
+                                                          "(Z)V");
+
+    jmethodID method_id_onRecord = env->GetMethodID(native_bridge_class, "onRecord",
+                                                          "([B)V");
+
+    //参数依次为采样率、频道数量、录入频道数量、播放频道数量，每帧的大学，模式
+    uint32_t FRAME_SIZE = sampleRate * period / 1000;
+    OPENSL_STREAM *stream = android_OpenAudioDevice(sampleRate, channels, channels, FRAME_SIZE,
+                                                    RECORD_MODE);
+    if (stream == NULL) {
+        LOG("failed to open audio device ! \n");
+        env->CallVoidMethod(instance, method_id_setIsRecording, false);
+        return;
+    }
+
+    LOG("IN RECORDING STATE");
+    env->CallVoidMethod(instance, method_id_setIsRecording, true);
+    uint32_t samples;
+    //缓冲数组,单位usigned short,16bit
+    uint32_t BUFFER_SIZE = FRAME_SIZE * channels;
+    uint16_t buffer[BUFFER_SIZE];
+    g_loop_exit = 0;
+    while (!g_loop_exit) {
+        samples = android_AudioIn(stream, buffer, BUFFER_SIZE);
+        if (samples < 0) {
+            LOG("android_AudioIn failed !\n");
+            break;
+        }
+
+        int length  =samples * 2;
+        LOG("byte array lenth = %d",length);
+        jbyteArray jbyteArray1 = env->NewByteArray(length);
+        jbyte *jbyte1 = (jbyte *) buffer;
+        env->SetByteArrayRegion(jbyteArray1,0, length,jbyte1);
+        env->CallVoidMethod(instance, method_id_onRecord, jbyteArray1);
+
+        total_time += 20;
+        LOG("capture %d samples !\n", samples);
+    }
+
+    android_CloseAudioDevice(stream);
+    env->CallVoidMethod(instance, method_id_setIsRecording, false);
+    time(&t2);
+    LOG("native startRecord completed spend %f s %f ms!", difftime(t2, t1), total_time);
+}
+
+JNIEXPORT void JNICALL
 Java_dev_mars_openslesdemo_NativeLib_startRecording(JNIEnv *env, jobject instance, jint sampleRate,
                                                     jint periodTime, jint channels,
                                                     jstring audioPath) {
@@ -405,7 +461,6 @@ Java_dev_mars_openslesdemo_NativeLib_startRecording(JNIEnv *env, jobject instanc
     env->CallVoidMethod(instance, method_id_setIsRecording, false);
     time(&t2);
     LOG("native startRecord completed spend %f s %f ms!", difftime(t2, t1), total_time);
-
 }
 
 JNIEXPORT void JNICALL
