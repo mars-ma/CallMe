@@ -21,30 +21,23 @@ import dev.mars.callme.common.Constants;
 import dev.mars.callme.event.CallingEvent;
 import dev.mars.callme.event.OnCallEvent;
 import dev.mars.callme.service.CommunicateService;
-import dev.mars.openslesdemo.AudioUtils;
-import dev.mars.openslesdemo.LogUtils;
-import dev.mars.openslesdemo.NativeLib;
+import dev.mars.audio.AudioUtils;
+import dev.mars.audio.LogUtils;
+import dev.mars.audio.NativeLib;
 
 import static android.Manifest.permission.CHANGE_WIFI_MULTICAST_STATE;
 
 public class MainActivity extends BaseActivity {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
-
     String[] permissions = {Manifest.permission.ACCESS_WIFI_STATE, CHANGE_WIFI_MULTICAST_STATE,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO};
     EditText editText;
     TextView textView;
-    NativeLib nativeLib;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
-        nativeLib= new NativeLib();
         editText = (EditText) findViewById(R.id.etContent);
         textView = (TextView) findViewById(R.id.tvContent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -114,22 +107,19 @@ public class MainActivity extends BaseActivity {
 
 
 
-    public void recordAndPlay(View view) {
-        new Thread(){
-            @Override
-            public void run() {
-                nativeLib.setOnRecordListener(new NativeLib.OnRecordListener() {
-                    @Override
-                    public void onRecord(byte[] datas) {
-                        LogUtils.DEBUG(new String(datas));
-                    }
-                });
-                nativeLib.startRecording2(8000,20,1);
-            }
-        }.start();
+    public void testRecord(View view) {
+        CommunicateService.startRecord(getActivity());
+    }
+
+    public void stopRecord(View view) {
+        CommunicateService.stopRecord(getActivity());
+    }
+
+    public void testPlay(View view) {
+        CommunicateService.startPlay(getActivity());
     }
 
     public void stopPlay(View view) {
-        nativeLib.stopRecording();
+        CommunicateService.stopPlay(getActivity());
     }
 }

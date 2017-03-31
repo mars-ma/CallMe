@@ -22,11 +22,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
 }
 
 dependencies {
@@ -39,6 +34,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'org.greenrobot:eventbus:3.0.0'
     testCompile 'junit:junit:4.12'
-    compile project(':opensl')
-    compile project(path: ':opensl')
+    compile project(':audio')
+    compile project(path: ':audio')
 }

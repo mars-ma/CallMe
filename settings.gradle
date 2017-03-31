@@ -1,1 +1,1 @@
-include ':callme', ':opensl'
+include ':callme', ':audio'

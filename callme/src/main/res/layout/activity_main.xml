@@ -25,14 +25,27 @@
         />
     <Button
         android:layout_width="match_parent"
-        android:text="测试录放"
+        android:text="测试录音"
         android:layout_height="wrap_content"
-        android:onClick="recordAndPlay"
+        android:onClick="testRecord"
         />
 
     <Button
         android:layout_width="match_parent"
-        android:text="停止录放"
+        android:text="停止录音"
+        android:layout_height="wrap_content"
+        android:onClick="stopRecord"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="测试播放"
+        android:layout_height="wrap_content"
+        android:onClick="testPlay"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:text="停止播放"
         android:layout_height="wrap_content"
         android:onClick="stopPlay"
         />

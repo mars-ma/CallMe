@@ -18,6 +18,7 @@ public class SocketMessage implements Serializable{
 	public static final byte COMMAND_REQUEST_CALL= 2;
 	public static final byte COMMAND_REPONSE_CALL_OK= 3; //同意通话
 	public static final byte COMMAND_REPONSE_CALL_REFUSE= 4; //拒绝通话
+	public static final byte COMMAND_SEND_VOICE= 5; //发送语音包
 
 	public static final byte HEADER1 = 0x5c;
 	public static final byte HEADER2 = 0x74;
