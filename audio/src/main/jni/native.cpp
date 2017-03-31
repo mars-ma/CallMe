@@ -376,7 +376,8 @@ Java_dev_mars_audio_NativeLib_playRecording2(JNIEnv *env, jobject instance, jint
             LOG("android_AudioOut failed !\n");
         }
         LOG("playback %d samples !\n", samples);
-        env->ReleaseByteArrayElements(jbyteArray1,jbyte1,JNI_ABORT);
+        //无比删除本地引用避免本地引用表溢出
+        env->DeleteLocalRef(jbyteArray1);
     }
 
     android_CloseAudioDevice(stream);
@@ -422,7 +423,7 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
     uint32_t BUFFER_SIZE = FRAME_SIZE * channels;
     uint16_t buffer[BUFFER_SIZE];
     is_recording2 = 1;
-    jbyteArray jbyteArray1;
+
     while (is_recording2) {
         samples = android_AudioIn(stream, buffer, BUFFER_SIZE);
         if (samples < 0) {
@@ -432,17 +433,16 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
 
         int length  =samples * 2;
         LOG("byte array lenth = %d",length);
-        if(jbyteArray1==NULL) {
-            jbyteArray1 = env->NewByteArray(length);
-        }
-
+        jbyteArray jbyteArray1 = env->NewByteArray(length);
         jbyte *jbyte1 = (jbyte *) buffer;
         env->SetByteArrayRegion(jbyteArray1,0, length,jbyte1);
         env->CallVoidMethod(instance, method_id_onRecord, jbyteArray1);
         total_time += 20;
+        env->DeleteLocalRef(jbyteArray1);
+
         LOG("capture %d samples !\n", samples);
     }
-    env->DeleteLocalRef(jbyteArray1);
+
     android_CloseAudioDevice(stream);
     env->CallVoidMethod(instance, method_id_setIsRecording, false);
     time(&t2);

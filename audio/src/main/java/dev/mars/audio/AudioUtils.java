@@ -1,5 +1,7 @@
 package dev.mars.audio;
 
+import android.provider.SyncStateContract;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,7 +76,7 @@ public class AudioUtils {
                         onRecordListener.onStart();
                     }
                 });
-                nativeBridge.startRecording2(8000,20,1);
+                nativeBridge.startRecording2(Common.SAMPLERATE,Common.PERIOD_TIME,Common.CHANNELS);
             }
         });
     }

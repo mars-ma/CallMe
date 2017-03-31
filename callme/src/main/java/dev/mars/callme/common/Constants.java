@@ -15,7 +15,7 @@ public class Constants {
     //默认PCM录制采样率
     public static final int SAMPLERATE = 44100; //bit/s
     //默认PCM录制通道数
-    public static final int CHANNELS = 1; //1:单/2:双声道
+    public static final int CHANNELS = 2; //1:单/2:双声道
     //默认PCM录制一帧采样时间
     public static final int PERIOD_TIME = 20; //ms
     //默认PCM录制文件地址

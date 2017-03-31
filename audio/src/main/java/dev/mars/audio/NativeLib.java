@@ -64,7 +64,7 @@ public class NativeLib {
 
     public void startPlay2(BlockingQueue<AudioFrame> audioFrames) {
         this.audioFrames = audioFrames;
-        playRecording2(8000, 20, 1);
+        playRecording2(Common.SAMPLERATE,Common.PERIOD_TIME,Common.CHANNELS);
     }
 
     public native void startRecording2(int sampleRate, int period, int channels);

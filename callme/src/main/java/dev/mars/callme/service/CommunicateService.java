@@ -191,6 +191,7 @@ public class CommunicateService extends Service {
 
     private void stopAudioPlay() {
         audioUtils.stopPlay();
+        audioPlayQueue.clear();
     }
 
     private void startAudioRecord() {
@@ -222,7 +223,7 @@ public class CommunicateService extends Service {
                                 LogUtils.DT("尝试从录制队列取出数据");
                                 SocketMessage msg = audioRecordQueue.take();
                                 LogUtils.DT("压入播放缓冲池 当前大小:"+audioPlayQueue.size());
-                                if(msg!=null){
+                                if(msg!=null&&audioUtils.isPlaying()){
                                     AudioFrame audioFrame = new AudioFrame();
                                     audioFrame.data = msg.getData();
                                     audioPlayQueue.put(audioFrame);
