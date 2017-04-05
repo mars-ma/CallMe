@@ -287,11 +287,9 @@ Java_dev_mars_audio_NativeLib_decode(JNIEnv *env, jobject instance, jstring spee
     void *state;
     /*保存字节因此他们可以被speex常规读写*/
     SpeexBits bits;
-    int i, tmp;
     //新建一个新的编码状态在窄宽(narrowband)模式下
     state = speex_decoder_init(&speex_nb_mode);
     //设置质量为8(15kbps)
-    tmp = 8;
     inFile = speex;
 
     fin = fopen(inFile, "r");
@@ -323,7 +321,7 @@ Java_dev_mars_audio_NativeLib_decode(JNIEnv *env, jobject instance, jstring spee
         //将bits中的数据解码到output
         speex_decode(state, &bits, output);
         //把16bits的float转换short,以便pcm播放
-        for (i = 0; i < FRAME_SIZE; i++)
+        for (int i = 0; i < FRAME_SIZE; i++)
             out[i] = output[i];
 
         fwrite(out, sizeof(short), FRAME_SIZE, fout);
@@ -352,12 +350,29 @@ Java_dev_mars_audio_NativeLib_playRecording2(JNIEnv *env, jobject instance, jint
     jmethodID  method_id_getOneFrame = env->GetMethodID(native_bridge_class,"getOneFrame","()[B");
 
     uint32_t FRAME_SIZE = sampleRate * period / 1000;
+    uint32_t BUFFER_SIZE = FRAME_SIZE*channels;
     OPENSL_STREAM *stream = android_OpenAudioDevice(sampleRate, channels, channels, FRAME_SIZE,
                                                     PLAY_MODE);
 
     env->CallVoidMethod(instance, method_id_setIsPlaying, true);
     LOG("In playing state");
     is_playing2 = 1;
+
+    //speex
+    /*保存编码的状态*/
+    void *state;
+    /*保存字节因此他们可以被speex常规读写*/
+    SpeexBits bits;
+    //新建一个新的编码状态在窄宽(narrowband)模式下
+    if(channels==1){
+        state = speex_decoder_init(&speex_nb_mode);
+    }else if (channels==2){
+        state = speex_decoder_init(&speex_wb_mode);
+    }
+    //初始化结构使他们保存数据
+    speex_bits_init(&bits);
+    spx_int16_t output[BUFFER_SIZE];
+
     while (is_playing2) {
         jbyteArray jbyteArray1 = (jbyteArray) env->CallObjectMethod(instance, method_id_getOneFrame);
         if(jbyteArray1==NULL){
@@ -367,11 +382,17 @@ Java_dev_mars_audio_NativeLib_playRecording2(JNIEnv *env, jobject instance, jint
         if(length==0){
             continue;
         }
-        LOG("得到字节数组长度:%d",length);
+        LOG("得到speex编码的字节数组长度:%d",length);
         jbyte *jbyte1 = env->GetByteArrayElements(jbyteArray1,NULL);
-        uint16_t *buffer = (uint16_t*) jbyte1;
 
-        uint32_t samples = android_AudioOut(stream, buffer, length/2);
+        char *cbits = (char *) jbyte1;
+        speex_bits_reset(&bits);
+        //把读入的char数组拷贝到bits
+        speex_bits_read_from(&bits, cbits, length);
+        //将bits中的数据解码到output
+        speex_decode_int(state,&bits,output);
+        uint16_t *out = (uint16_t *) output;
+        uint32_t samples = android_AudioOut(stream, out, BUFFER_SIZE);
         if (samples < 0) {
             LOG("android_AudioOut failed !\n");
         }
@@ -379,6 +400,11 @@ Java_dev_mars_audio_NativeLib_playRecording2(JNIEnv *env, jobject instance, jint
         //无比删除本地引用避免本地引用表溢出
         env->DeleteLocalRef(jbyteArray1);
     }
+
+    //释放编码器状态量
+    speex_decoder_destroy(state);
+    //释放bit_packing结构
+    speex_bits_destroy(&bits);
 
     android_CloseAudioDevice(stream);
     env->CallVoidMethod(instance, method_id_setIsPlaying, false);
@@ -424,6 +450,29 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
     uint16_t buffer[BUFFER_SIZE];
     is_recording2 = 1;
 
+
+    //speex
+
+    int nbBytes;
+    /*保存编码的状态*/
+    void *state;
+    /*保存字节因此他们可以被speex常规读写*/
+    SpeexBits bits;
+
+    if(channels==1) {
+        state = speex_encoder_init(&speex_nb_mode);
+    }else if(channels==2){
+        state = speex_encoder_init(&speex_wb_mode);
+    }
+
+    int quality = 8;
+    speex_encoder_ctl(state, SPEEX_SET_QUALITY, &quality);
+    int my_frame_size;
+    speex_encoder_ctl(state,SPEEX_GET_FRAME_SIZE,&my_frame_size);
+    LOG("channels = %d , frame size = %d",channels,my_frame_size);
+    //初始化结构使他们保存数据
+    speex_bits_init(&bits);
+
     while (is_recording2) {
         samples = android_AudioIn(stream, buffer, BUFFER_SIZE);
         if (samples < 0) {
@@ -431,10 +480,24 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
             break;
         }
 
-        int length  =samples * 2;
+        spx_int16_t *input = (spx_int16_t *)buffer;
+        //清空这个结构体里所有的字节,以便我们可以编码一个新的帧
+        speex_bits_reset(&bits);
+        //对帧进行编码
+        speex_encode_int(state, input, &bits);
+        //把bits拷贝到一个利用写出的char型数组
+        //先得到要输出的字节数
+        int output_size = speex_bits_nbytes(&bits);
+        //再创创建字节数组
+        char cbits[output_size];
+        nbBytes = speex_bits_write(&bits, cbits, output_size);
+
+        LOG("output_size %d , nbBytes %d , BUFFER SIZE %d",output_size,nbBytes,BUFFER_SIZE);
+        int length  =output_size;
         LOG("byte array lenth = %d",length);
         jbyteArray jbyteArray1 = env->NewByteArray(length);
-        jbyte *jbyte1 = (jbyte *) buffer;
+        //char与j
+        jbyte *jbyte1 = (jbyte *) cbits;
         env->SetByteArrayRegion(jbyteArray1,0, length,jbyte1);
         env->CallVoidMethod(instance, method_id_onRecord, jbyteArray1);
         total_time += 20;
@@ -442,6 +505,11 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
 
         LOG("capture %d samples !\n", samples);
     }
+
+    //释放编码器状态量
+    speex_encoder_destroy(state);
+    //释放bit_packing结构
+    speex_bits_destroy(&bits);
 
     android_CloseAudioDevice(stream);
     env->CallVoidMethod(instance, method_id_setIsRecording, false);
