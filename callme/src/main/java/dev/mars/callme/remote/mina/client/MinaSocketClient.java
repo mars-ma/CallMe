@@ -147,12 +147,7 @@ public class MinaSocketClient {
 	 */
 	public void send(final SocketMessage msg, final ISendListener listener,
 					 final boolean tryConnect) {
-		service.execute(new Runnable() {
-			@Override
-			public void run() {
-				getSessionState().send(msg, listener, tryConnect);
-			}
-		});
+		getSessionState().send(msg, listener, tryConnect);
 	}
 
 	/**

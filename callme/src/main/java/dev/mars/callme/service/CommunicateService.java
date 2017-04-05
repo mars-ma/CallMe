@@ -18,6 +18,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,6 +67,9 @@ public class CommunicateService extends Service {
     //每个SocketMessage存放20ms的音频帧,阻塞队列最多存放2000秒的数据
     private BlockingQueue<SocketMessage> audioRecordQueue = new ArrayBlockingQueue<SocketMessage>(100);
     private BlockingQueue<AudioFrame> audioPlayQueue = new ArrayBlockingQueue<AudioFrame>(100);
+    private static final boolean isLocalTest = false;
+    ExecutorService sendService = Executors.newSingleThreadExecutor();
+    SendAudioFrameRunnable sendAudioRunnable;
 
     @Override
     public void onCreate() {
@@ -215,28 +221,33 @@ public class CommunicateService extends Service {
 
             @Override
             public void onStart() {
-                new Thread(){
-                    @Override
-                    public void run() {
-                        while(audioUtils.isRecording()){
-                            try {
-                                LogUtils.DT("尝试从录制队列取出数据");
-                                SocketMessage msg = audioRecordQueue.take();
-                                LogUtils.DT("压入播放缓冲池 当前大小:"+audioPlayQueue.size());
-                                if(msg!=null&&audioUtils.isPlaying()){
-                                    AudioFrame audioFrame = new AudioFrame();
-                                    audioFrame.data = msg.getData();
-                                    audioPlayQueue.put(audioFrame);
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }.start();
+                //开启线程轮询 audioRecordQueue ，发送音频消息
+                sendAudioRunnable = new SendAudioFrameRunnable();
+                sendService.execute(sendAudioRunnable);
             }
         });
+    }
 
+
+    private void sendAudioMessage(final SocketMessage msg) {
+        if(STATE.get()==4){
+            minaSocketClient.send(msg,null,false);
+        }else if(STATE.get()==2){
+            minaSocketServer.send(msg,null);
+        }
+    };
+
+    private void addToPlayQueue(SocketMessage socketMessage) {
+        AudioFrame audioFrame = new AudioFrame();
+        audioFrame.data = socketMessage.getData();
+        if(audioUtils.isPlaying()&&audioFrame.data!=null){
+            try {
+                //如果播放队列满容不阻塞，丢弃
+                audioPlayQueue.add(audioFrame);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void stopAudioRecord(){
@@ -391,6 +402,9 @@ public class CommunicateService extends Service {
                             onCallEvent.ip = clientIP;
                             EventBus.getDefault().post(onCallEvent);
                             break;
+                        case SocketMessage.COMMAND_SEND_VOICE:
+                            addToPlayQueue(socketMessage);
+                            break;
                     }
                 }
 
@@ -427,6 +441,8 @@ public class CommunicateService extends Service {
             LogUtils.E("TCP 监听失败 当前STATE:"+STATE);
         }
     }
+
+
 
     private void startSocketConnect(final String ip){
         if(STATE.get()==0) {
@@ -488,6 +504,9 @@ public class CommunicateService extends Service {
                             EventBus.getDefault().post(new StartCommunicatingEvent());
                             IS_COMMUNICATING.set(true);
                             break;
+                        case SocketMessage.COMMAND_SEND_VOICE:
+                            addToPlayQueue(socketMessage);
+                            break;
                     }
                 }
 
@@ -525,6 +544,30 @@ public class CommunicateService extends Service {
         }
     }
 
-
+    class SendAudioFrameRunnable implements Runnable{
+        @Override
+        public void run() {
+            while(audioUtils.isRecording()){
+                try {
+                    LogUtils.DT("尝试从录制队列取出数据");
+                    SocketMessage msg = audioRecordQueue.poll(3000, TimeUnit.MILLISECONDS);
+                    LogUtils.DT("压入播放缓冲池 当前大小:"+audioPlayQueue.size());
+                    if(isLocalTest&&msg!=null&&audioUtils.isPlaying()){
+                        AudioFrame audioFrame = new AudioFrame();
+                        audioFrame.data = msg.getData();
+                        //本地测试
+                        audioPlayQueue.put(audioFrame);
+                    }
+                    if(!isLocalTest&&msg!=null){
+                        sendAudioMessage(msg);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    LogUtils.E("SendAudioFrameThread 被中断");
+                }
+            }
+            LogUtils.E("SendAudioFrameThread 停止");
+        }
+    }
 
 }
