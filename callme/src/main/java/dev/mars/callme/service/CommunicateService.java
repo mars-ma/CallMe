@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -70,6 +71,8 @@ public class CommunicateService extends Service {
     private static final boolean isLocalTest = false;
     ExecutorService sendService = Executors.newSingleThreadExecutor();
     SendAudioFrameRunnable sendAudioRunnable;
+
+    private CommunicateServiceBinder communicateServiceBinder = new CommunicateServiceBinder();
 
     @Override
     public void onCreate() {
@@ -348,7 +351,7 @@ public class CommunicateService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+       return communicateServiceBinder;
     }
 
 
@@ -570,4 +573,29 @@ public class CommunicateService extends Service {
         }
     }
 
+    public class CommunicateServiceBinder extends Binder{
+        public boolean isMicOn(){
+            return audioUtils.isRecording();
+        }
+
+        public boolean isSpeakerOn(){
+            return audioUtils.isPlaying();
+        }
+
+        public boolean isNoiceClearEnable(){
+            return true;
+        }
+
+        public boolean isEchoClearEnable(){
+            return true;
+        }
+
+        public void setNoiseClearEnable(boolean enable){
+            audioUtils.setNoiseClear(enable);
+        }
+
+        public void setEchoClearEnable(boolean enable){
+            audioUtils.setEchoClearEnable(enable);
+        }
+    }
 }

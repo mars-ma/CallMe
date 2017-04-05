@@ -20,4 +20,28 @@
         android:onClick="stopCalling"
         android:layout_height="wrap_content" />
 
+    <CheckBox
+        android:layout_marginTop="20dp"
+        android:id="@+id/cbMic"
+        android:text="麦克风"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <CheckBox
+        android:id="@+id/cbSpeaker"
+        android:text="扬声器"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <CheckBox
+        android:id="@+id/cbNoiseClear"
+        android:text="消除噪音"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <CheckBox
+        android:id="@+id/cbEchoClear"
+        android:text="消除回声"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

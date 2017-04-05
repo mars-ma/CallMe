@@ -16,6 +16,7 @@ import dev.mars.callme.base.BaseActivity;
 import dev.mars.callme.event.SessionClosedEvent;
 import dev.mars.callme.event.StartCommunicatingEvent;
 import dev.mars.callme.service.CommunicateService;
+import dev.mars.callme.utils.RingtonePlayer;
 
 public class OnCallActivity extends BaseActivity {
     TextView textView;
@@ -33,6 +34,7 @@ public class OnCallActivity extends BaseActivity {
     private void init() {
         otherIP = getIntent().getStringExtra("IP");
         textView.setText("收到来电:"+otherIP);
+        RingtonePlayer.play(getActivity());
     }
 
     public static void onCall(Context context, String ip){
@@ -50,6 +52,8 @@ public class OnCallActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(StartCommunicatingEvent event){
         textView.setText("正在与 "+otherIP+" 通话");
+        CommunicatingActivity.enter(getActivity(),otherIP);
+        finish();
     }
 
     public void stopCalling(View view) {
@@ -67,5 +71,6 @@ public class OnCallActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+        RingtonePlayer.close();
     }
 }

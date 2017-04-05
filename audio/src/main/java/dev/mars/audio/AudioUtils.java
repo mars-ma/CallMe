@@ -19,6 +19,14 @@ public class AudioUtils {
         nativeBridge = new NativeLib();
     }
 
+    public void setNoiseClear(boolean enable){
+        nativeBridge.setNoiseClear(enable);
+    }
+
+    public void setEchoClearEnable(boolean enable){
+        nativeBridge.setEchoClear(enable);
+    }
+
     public boolean recordAndPlayPCM(final boolean enable1, final boolean enable2){
         if(!nativeBridge.isRecordingAndPlaying()) {
             executor.execute(new Runnable() {

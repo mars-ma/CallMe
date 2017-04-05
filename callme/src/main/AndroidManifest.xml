@@ -27,7 +27,8 @@
             android:exported="false" />
 
         <activity android:name=".CallingActivity" />
-        <activity android:name=".OnCallActivity"></activity>
+        <activity android:name=".OnCallActivity" />
+        <activity android:name=".CommunicatingActivity"></activity>
     </application>
 
 </manifest>

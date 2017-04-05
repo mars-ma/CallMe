@@ -44,11 +44,9 @@ public class NativeLib {
         return isRecordAndPlay.get();
     }
 
-    public native void startRecording(int sampleRate, int period, int channels, String path);
 
     public native void stopRecording();
 
-    public native void playRecording(int sampleRate, int period, int channels, String path);
 
     public native void stopPlaying();
 
@@ -105,4 +103,8 @@ public class NativeLib {
 
         void onStart();
     }
+
+    public native void setNoiseClear(boolean enable);
+
+    public native void setEchoClear(boolean enable);
 }
