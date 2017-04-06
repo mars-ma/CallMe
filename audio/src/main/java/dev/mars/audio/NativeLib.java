@@ -2,6 +2,7 @@ package dev.mars.audio;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by ma.xuanwei on 2017/3/7.
@@ -12,6 +13,22 @@ public class NativeLib {
     private AtomicBoolean isRecording = new AtomicBoolean(false);
     private AtomicBoolean isPlaying = new AtomicBoolean(false);
     private AtomicBoolean isRecordAndPlay = new AtomicBoolean(false);
+
+    private AudioFrame echoAudioFrame = new AudioFrame();
+    ReentrantLock reentrantLock = new ReentrantLock(true);
+
+    public void setEchoAudioFrame(byte[] bytes){
+        reentrantLock.tryLock();
+        echoAudioFrame.data = bytes;
+        reentrantLock.unlock();
+    }
+
+    public byte[] getEchoAudioFrame(){
+        reentrantLock.tryLock();
+        byte[] bytes = echoAudioFrame.data;
+        reentrantLock.unlock();
+        return bytes;
+    }
 
     static {
         System.loadLibrary("native");

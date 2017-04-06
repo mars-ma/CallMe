@@ -39,4 +39,6 @@ public class Constants {
      * 发生READ_IDLE_TIMES次 READ IDLE事件后关闭会话
      */
     public static final int READ_IDLE_CLOSE_TIMES = 1;
+
+    public static final boolean RING_TONE_PLAY = false;
 }

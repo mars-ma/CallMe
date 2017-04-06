@@ -597,5 +597,22 @@ public class CommunicateService extends Service {
         public void setEchoClearEnable(boolean enable){
             audioUtils.setEchoClearEnable(enable);
         }
+
+        public void turnOnMic(){
+            startAudioRecord();
+        }
+
+        public void turnOffMic(){
+            stopAudioRecord();
+        }
+
+        public void turnOnSpeaker(){
+            startAudioPlay();
+        }
+
+        public void turnOffSpeaker(){
+            stopAudioPlay();
+        }
+
     }
 }

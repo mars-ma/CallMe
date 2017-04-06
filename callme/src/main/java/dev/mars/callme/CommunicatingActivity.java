@@ -48,8 +48,8 @@ public class CommunicatingActivity extends BaseActivity {
             cbNoiceClear.setOnCheckedChangeListener(onCheckedChangeListener);
             cbEchoClear.setOnCheckedChangeListener(onCheckedChangeListener);
 
-            cbMic.setChecked(true);
-            cbSpeaker.setChecked(true);
+            //cbMic.setChecked(true);
+            //cbSpeaker.setChecked(true);
         }
 
         @Override
@@ -80,41 +80,42 @@ public class CommunicatingActivity extends BaseActivity {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             switch (buttonView.getId()){
                 case R.id.cbMic:
-                    openOrCloseMic();
+                    setMic();
                     break;
                 case R.id.cbSpeaker:
-                    openOrCloseSpeaker();
+                    setSpeaker();
                     break;
                 case R.id.cbNoiseClear:
-                    openOrCloseNoiseClear();
+                    setNoiseClear();
                     break;
                 case R.id.cbEchoClear:
+                    setEchoClear();
                     break;
             }
         }
     };
 
-    private void openOrCloseNoiseClear() {
-        if(cbNoiceClear.isChecked()){
-            binder.setNoiseClearEnable(true);
-        }else{
-            binder.setNoiseClearEnable(false);
-        }
+    private void setEchoClear() {
+        binder.setEchoClearEnable(cbEchoClear.isChecked());
     }
 
-    private void openOrCloseSpeaker() {
+    private void setNoiseClear() {
+        binder.setNoiseClearEnable(cbNoiceClear.isChecked());
+    }
+
+    private void setSpeaker() {
         if(cbSpeaker.isChecked()){
-            CommunicateService.startPlay(getActivity());
+            binder.turnOnSpeaker();
         }else{
-            CommunicateService.stopPlay(getActivity());
+            binder.turnOffSpeaker();
         }
     }
 
-    private void openOrCloseMic() {
+    private void setMic() {
         if(cbMic.isChecked()){
-            CommunicateService.startRecord(getActivity());
+           binder.turnOnMic();
         }else{
-            CommunicateService.stopRecord(getActivity());
+            binder.turnOffMic();
         }
     }
 

@@ -6,6 +6,9 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Vibrator;
+import android.provider.SyncStateContract;
+
+import dev.mars.callme.common.Constants;
 
 /**
  * Created by mars_ma on 2017/4/5.
@@ -16,6 +19,8 @@ public class RingtonePlayer {
     private static Vibrator vibrator;
 
     public static void play(Context context) {
+        if(!Constants.RING_TONE_PLAY)
+            return;
         //-开始播放手机铃声及震动
         close();
         try {
@@ -41,6 +46,8 @@ public class RingtonePlayer {
     }
 
     public static void close() {
+        if(!Constants.RING_TONE_PLAY)
+            return;
         try {
             if (mMediaPlayer != null) {
                 if (mMediaPlayer.isPlaying()) {
