@@ -35,7 +35,7 @@ extern "C" {
 
 #define TAIL 1024
 #define SPEEX_FRAME_SIZE 160
-#define SPEEX_ECHO_TAIL_LENGTH 100
+#define SPEEX_ECHO_TAIL_LENGTH 50
 
 
 JNIEXPORT void JNICALL
@@ -416,6 +416,7 @@ Java_dev_mars_audio_NativeLib_playRecording2(JNIEnv *env, jobject instance, jint
 
         //每播放一帧，将该帧作为回声数组
         if(echo_clear){
+            LOG("将播放帧作为回声");
             //output 为16位，jbyte为8位
             jbyteArray jbyteArray2 = env->NewByteArray(BUFFER_SIZE*2);
             jbyte *jbyte2 = (jbyte *) output;
@@ -574,6 +575,8 @@ Java_dev_mars_audio_NativeLib_startRecording2(JNIEnv *env, jobject instance, jin
          * 如果开启回声消除，并且当前扬声器正在播放,做回声消除处理
          */
         if (echo_clear && is_playing2) {
+
+            LOG("录制处理回声");
             //得到回声字节数组
             jbyteArray jbyteArray1 = (jbyteArray) env->CallObjectMethod(instance,
                                                                         method_id_getEchoAudioFrame);

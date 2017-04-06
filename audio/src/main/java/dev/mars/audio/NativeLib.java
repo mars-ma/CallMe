@@ -15,16 +15,16 @@ public class NativeLib {
     private AtomicBoolean isRecordAndPlay = new AtomicBoolean(false);
 
     private AudioFrame echoAudioFrame = new AudioFrame();
-    ReentrantLock reentrantLock = new ReentrantLock(true);
+    private static ReentrantLock reentrantLock = new ReentrantLock(true);
 
     public void setEchoAudioFrame(byte[] bytes){
-        reentrantLock.tryLock();
+        reentrantLock.lock();
         echoAudioFrame.data = bytes;
         reentrantLock.unlock();
     }
 
     public byte[] getEchoAudioFrame(){
-        reentrantLock.tryLock();
+        reentrantLock.lock();
         byte[] bytes = echoAudioFrame.data;
         reentrantLock.unlock();
         return bytes;

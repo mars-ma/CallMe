@@ -38,8 +38,8 @@ public class CommunicatingActivity extends BaseActivity {
             cbNoiceClear.setOnCheckedChangeListener(null);
             cbEchoClear.setOnCheckedChangeListener(null);
 
-            cbMic.setChecked(binder.isMicOn());
-            cbSpeaker.setChecked(binder.isSpeakerOn());
+            cbMic.setChecked(false);
+            cbSpeaker.setChecked(false);
             cbNoiceClear.setChecked(binder.isNoiceClearEnable());
             cbEchoClear.setChecked(binder.isEchoClearEnable());
 
@@ -48,8 +48,10 @@ public class CommunicatingActivity extends BaseActivity {
             cbNoiceClear.setOnCheckedChangeListener(onCheckedChangeListener);
             cbEchoClear.setOnCheckedChangeListener(onCheckedChangeListener);
 
-            //cbMic.setChecked(true);
-            //cbSpeaker.setChecked(true);
+            cbMic.setChecked(false);
+            cbSpeaker.setChecked(false);
+            cbEchoClear.setChecked(true);
+            cbNoiceClear.setChecked(true);
         }
 
         @Override

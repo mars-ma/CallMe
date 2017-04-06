@@ -41,4 +41,8 @@ public class Constants {
     public static final int READ_IDLE_CLOSE_TIMES = 1;
 
     public static final boolean RING_TONE_PLAY = false;
+
+    //每个单位20ms
+    public static final int RECORD_QUEUE_SIZE = 50;
+    public static final int PLAY_QUEUE_SIZE = 50;
 }

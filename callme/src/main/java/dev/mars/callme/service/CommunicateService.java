@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import dev.mars.audio.AudioFrame;
 import dev.mars.callme.bean.SocketMessage;
 import dev.mars.callme.bean.UDPMessage;
+import dev.mars.callme.common.Constants;
 import dev.mars.callme.event.CallingEvent;
 import dev.mars.callme.event.OnCallEvent;
 import dev.mars.callme.event.SessionClosedEvent;
@@ -66,8 +67,8 @@ public class CommunicateService extends Service {
     private MinaSocketClient minaSocketClient;
 
     //每个SocketMessage存放20ms的音频帧,阻塞队列最多存放2000秒的数据
-    private BlockingQueue<SocketMessage> audioRecordQueue = new ArrayBlockingQueue<SocketMessage>(100);
-    private BlockingQueue<AudioFrame> audioPlayQueue = new ArrayBlockingQueue<AudioFrame>(100);
+    private BlockingQueue<SocketMessage> audioRecordQueue = new ArrayBlockingQueue<SocketMessage>(Constants.RECORD_QUEUE_SIZE);
+    private BlockingQueue<AudioFrame> audioPlayQueue = new ArrayBlockingQueue<AudioFrame>(Constants.PLAY_QUEUE_SIZE);
     private static final boolean isLocalTest = false;
     ExecutorService sendService = Executors.newSingleThreadExecutor();
     SendAudioFrameRunnable sendAudioRunnable;
@@ -387,6 +388,8 @@ public class CommunicateService extends Service {
                     super.sessionClosed(session);
                     IS_COMMUNICATING.set(false);
                     STATE.set(0);
+                    stopAudioPlay();
+                    stopAudioRecord();
                     EventBus.getDefault().post(new SessionClosedEvent());
                 }
 
@@ -486,10 +489,14 @@ public class CommunicateService extends Service {
                 @Override
                 public void sessionClosed(IoSession session) throws Exception {
                     super.sessionClosed(session);
-                    EventBus.getDefault().post(new SessionClosedEvent());
+
                     STATE .set(0);
                     IS_COMMUNICATING.set(false);
                     minaSocketClient.setSessionState(ClientSessionStatus.ClOSED);
+
+                    stopAudioPlay();
+                    stopAudioRecord();
+                    EventBus.getDefault().post(new SessionClosedEvent());
                     LogUtils.DT("TCP 客户端会话关闭 Client:"+minaSocketClient.getSessionState().toString());
 
                 }
@@ -554,7 +561,6 @@ public class CommunicateService extends Service {
                 try {
                     LogUtils.DT("尝试从录制队列取出数据");
                     SocketMessage msg = audioRecordQueue.poll(3000, TimeUnit.MILLISECONDS);
-                    LogUtils.DT("压入播放缓冲池 当前大小:"+audioPlayQueue.size());
                     if(isLocalTest&&msg!=null&&audioUtils.isPlaying()){
                         AudioFrame audioFrame = new AudioFrame();
                         audioFrame.data = msg.getData();
